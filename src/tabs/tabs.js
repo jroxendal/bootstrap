@@ -13,11 +13,19 @@ angular.module('ui.bootstrap.tabs', [])
   var ctrl = this,
       tabs = ctrl.tabs = $scope.tabs = [];
 
-  ctrl.select = function(tab) {
+  ctrl.select = function(selectedTab) {
     angular.forEach(tabs, function(tab) {
-      tab.active = false;
+      if(tab.active && tab !== selectedTab) {
+        tab.active = false;
+        if(tab.onDeselect) {
+          tab.onDeselect();
+        }
+      }
     });
-    tab.active = true;
+    selectedTab.active = true;
+    if(selectedTab.onSelect) {
+      selectedTab.onSelect();
+    }
   };
 
   ctrl.addTab = function addTab(tab) {
@@ -195,7 +203,7 @@ angular.module('ui.bootstrap.tabs', [])
               scope.active = !!value;
             }
           });
-          scope.active = getActive(scope.$parent);
+          scope.active = getActive(scope.$parent) || false;
         } else {
           setActive = getActive = angular.noop;
         }
@@ -206,9 +214,6 @@ angular.module('ui.bootstrap.tabs', [])
           setActive(scope.$parent, active);
           if (active) {
             tabsetCtrl.select(scope);
-            scope.onSelect();
-          } else {
-            scope.onDeselect();
           }
         });
 

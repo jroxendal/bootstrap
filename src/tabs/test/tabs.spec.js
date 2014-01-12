@@ -26,15 +26,29 @@ describe('tabs', function() {
 
 
   describe('basics', function() {
-
+    var selectionCallbacks, execOrder = [];
     beforeEach(inject(function($compile, $rootScope) {
       scope = $rootScope.$new();
       scope.first = '1';
       scope.second = '2';
       scope.actives = {};
+
+      selectionCallbacks = {
+        selectSecond: function() {
+          execOrder.push("select2");
+        },
+        deselectFirst : function() {
+          execOrder.push("deselect1");
+
+        }
+      };
+
+      spyOn(selectionCallbacks, "selectSecond").andCallThrough();
+      spyOn(selectionCallbacks, "deselectFirst").andCallThrough();
+
       scope.selectFirst = jasmine.createSpy();
-      scope.selectSecond = jasmine.createSpy();
-      scope.deselectFirst = jasmine.createSpy();
+      scope.selectSecond = selectionCallbacks.selectSecond;
+      scope.deselectFirst = selectionCallbacks.deselectFirst;
       scope.deselectSecond = jasmine.createSpy();
       elm = $compile([
         '<div>',
@@ -98,6 +112,14 @@ describe('tabs', function() {
       expect(scope.deselectSecond).toHaveBeenCalled();
       titles().eq(1).find('a').click();
       expect(scope.deselectFirst).toHaveBeenCalled();
+    });
+
+    it('should call deselect first, then select', function() {
+      titles().eq(1).find('a').click();
+      expect(scope.deselectFirst).toHaveBeenCalled();
+      expect(execOrder[0]).toEqual("deselect1");
+      expect(scope.selectSecond).toHaveBeenCalled();
+      expect(execOrder[1]).toEqual("select2");
     });
 
   });
